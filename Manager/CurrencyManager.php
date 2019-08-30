@@ -2,17 +2,17 @@
 
 namespace RedCode\CurrencyRateBundle\Manager;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
+use Exception;
+use RedCode\Currency\ICurrency;
 use RedCode\Currency\ICurrencyManager;
 use RedCode\CurrencyRateBundle\Entity\Currency;
 
-/**
- * @author maZahaca
- */
+
 class CurrencyManager implements ICurrencyManager
 {
     /**
-     * @var \Doctrine\ORM\EntityManager
+     * @var EntityManagerInterface
      */
     private $em;
 
@@ -23,37 +23,40 @@ class CurrencyManager implements ICurrencyManager
 
     /**
      * CurrencyManager constructor.
-     * @param EntityManager $em
+     * @param EntityManagerInterface $em
      * @param $currencyClassName
-     * @throws \Exception
+     * @throws Exception
      */
-    public function __construct(EntityManager $em, $currencyClassName)
+    public function __construct(EntityManagerInterface $em, $currencyClassName)
     {
         $this->em = $em;
         $this->currencyClassName = $currencyClassName;
         if (!$currencyClassName || (!$this->em->getMetadataFactory()->hasMetadataFor($currencyClassName) && !$this->em->getClassMetadata($currencyClassName))) {
-            throw new \Exception("Class for currency \"{$currencyClassName}\" not found");
+            throw new Exception("Class for currency \"{$currencyClassName}\" not found");
         }
     }
 
-    /** {@inheritdoc} */
+    /**
+     * @param string $code
+     * @return object|ICurrency|null
+     */
     public function getCurrency($code)
     {
         return $this->em->getRepository($this->currencyClassName)->findOneBy(['code' => $code]);
     }
 
-    /** {@inheritdoc} */
+    /**
+     * @return array|ICurrency[]
+     */
     public function getAll()
     {
         return $this->em->getRepository($this->currencyClassName)->findAll();
     }
 
     /**
-     * @param $code
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @param string $code
      */
-    public function addCurrency($code)
+    public function addCurrency(string $code)
     {
         /** @var Currency $currency */
         $currency = new $this->currencyClassName();
@@ -62,4 +65,5 @@ class CurrencyManager implements ICurrencyManager
         $this->em->persist($currency);
         $this->em->flush();
     }
+
 }

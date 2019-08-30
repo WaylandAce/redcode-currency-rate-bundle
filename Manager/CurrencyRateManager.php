@@ -2,19 +2,21 @@
 
 namespace RedCode\CurrencyRateBundle\Manager;
 
-use Doctrine\ORM\EntityManager;
+use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use RedCode\Currency\ICurrency;
 use RedCode\Currency\Rate\ICurrencyRate;
 use RedCode\Currency\Rate\ICurrencyRateManager;
 use RedCode\Currency\Rate\Provider\ICurrencyRateProvider;
+use ReflectionClass;
+use ReflectionException;
 
-/**
- * @author maZahaca
- */
+
 class CurrencyRateManager implements ICurrencyRateManager
 {
     /**
-     * @var \Doctrine\ORM\EntityManager
+     * @var EntityManagerInterface
      */
     private $em;
 
@@ -25,16 +27,16 @@ class CurrencyRateManager implements ICurrencyRateManager
 
     /**
      * CurrencyRateManager constructor.
-     * @param EntityManager $em
+     * @param EntityManagerInterface $em
      * @param $currencyRateClassName
-     * @throws \Exception
+     * @throws Exception
      */
-    public function __construct(EntityManager $em, $currencyRateClassName)
+    public function __construct(EntityManagerInterface $em, $currencyRateClassName)
     {
         $this->em = $em;
         $this->currencyRateClassName = $currencyRateClassName;
         if (!$currencyRateClassName || (!$this->em->getMetadataFactory()->hasMetadataFor($currencyRateClassName) && !$this->em->getClassMetadata($currencyRateClassName))) {
-            throw new \Exception("Class for currency rate \"{$currencyRateClassName}\" not found");
+            throw new Exception("Class for currency rate \"{$currencyRateClassName}\" not found");
         }
     }
 
@@ -43,17 +45,24 @@ class CurrencyRateManager implements ICurrencyRateManager
     /**
      * Get reflection class.
      *
-     * @return \ReflectionClass
+     * @return ReflectionClass
+     * @throws ReflectionException
      */
     public function reflectionClass()
     {
-        return self::$reflection ?: self::$reflection = new \ReflectionClass($this->currencyRateClassName);
+        return self::$reflection ?: self::$reflection = new ReflectionClass($this->currencyRateClassName);
     }
 
     /**
-     * {@inheritdoc}
+     * @param ICurrency $currency
+     * @param ICurrencyRateProvider $provider
+     * @param DateTime $date
+     * @param float $rate
+     * @param float $nominal
+     * @return object|ICurrencyRate
+     * @throws ReflectionException
      */
-    public function getNewInstance(ICurrency $currency, ICurrencyRateProvider $provider, \DateTime $date, $rate, $nominal)
+    public function getNewInstance(ICurrency $currency, ICurrencyRateProvider $provider, DateTime $date, $rate, $nominal)
     {
         $dateNew = clone $date;
         $dateNew->setTime(0, 0, 0);
@@ -70,7 +79,7 @@ class CurrencyRateManager implements ICurrencyRateManager
     /**
      * {@inheritdoc}
      */
-    public function getRate(ICurrency $currency, ICurrencyRateProvider $provider, \DateTime $rateDate = null)
+    public function getRate(ICurrency $currency, ICurrencyRateProvider $provider, DateTime $rateDate = null)
     {
         $qb = $this->em->createQueryBuilder();
         $qb

@@ -44,7 +44,7 @@ class LoadCurrencyRatesCommand extends ContainerAwareCommand
 
         $rates = $this->updateRates($date, $providerName);
         foreach ($rates as $rate) {
-            $output->writeln(sprintf('%s. Loaded rate for %s', $rate->getProviderName(), $rate->getCurrency()->getCode()));
+            $output->writeln(sprintf('%s. Loaded rate for %s: %01.4f', $rate->getProviderName(), $rate->getCurrency()->getCode(), $rate->getRate()));
         }
     }
 

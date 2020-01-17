@@ -79,7 +79,7 @@ class CurrencyRateManager implements ICurrencyRateManager
     /**
      * {@inheritdoc}
      */
-    public function getRate(ICurrency $currency, ICurrencyRateProvider $provider, DateTime $rateDate = null)
+    public function getRate(ICurrency $currency, ICurrencyRateProvider $provider = null, DateTime $rateDate = null)
     {
         $qb = $this->em->createQueryBuilder();
         $qb

@@ -86,12 +86,13 @@ class CurrencyRateManager implements ICurrencyRateManager
             ->select('r')
             ->from($this->currencyRateClassName, 'r')
             ->leftJoin('r.currency', 'c')
-            ->where($qb->expr()->eq('c.code', ':currency'));
+            ->where($qb->expr()->eq('c.code', ':currency'))
+            ->setParameter('currency', $currency->getCode());
 
         if (null !== $provider) {
             $qb
                 ->andWhere($qb->expr()->eq('r.providerName', ':provider'))
-                ->setParameters(['currency' => $currency->getCode(), 'provider' => $provider->getName()]);
+                ->setParameter('provider', $provider->getName());
         }
 
         $qb->orderBy('r.date', 'DESC');

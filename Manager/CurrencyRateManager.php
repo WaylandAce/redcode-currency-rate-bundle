@@ -95,8 +95,7 @@ class CurrencyRateManager implements ICurrencyRateManager
                 ->setParameter('provider', $provider->getName());
         }
 
-        $qb
-            ->orderBy('r.date', 'DESC');
+        $qb->orderBy('r.date', 'DESC');
 
         if (isset($rateDate)) {
             $qb

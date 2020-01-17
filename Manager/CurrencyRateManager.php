@@ -87,15 +87,23 @@ class CurrencyRateManager implements ICurrencyRateManager
             ->from($this->currencyRateClassName, 'r')
             ->leftJoin('r.currency', 'c')
             ->where($qb->expr()->eq('c.code', ':currency'))
-            ->andWhere($qb->expr()->eq('r.providerName', ':provider'))
-            ->setParameters(['currency' => $currency->getCode(), 'provider' => $provider->getName()])
-            ->orderBy('r.date', 'DESC')
-        ;
+            ->setParameter('currency', $currency->getCode());
+
+        if (null !== $provider) {
+            $qb
+                ->andWhere($qb->expr()->eq('r.providerName', ':provider'))
+                ->setParameter('provider', $provider->getName());
+        }
+
+        $qb
+            ->orderBy('r.date', 'DESC');
+
         if (isset($rateDate)) {
             $qb
                 ->andWhere($qb->expr()->eq('r.date', ':date'))
                 ->setParameter('date', $rateDate->format('Y-m-d 00:00:00'));
         }
+
         $result = $qb->getQuery()->getResult();
         $result = reset($result);
 

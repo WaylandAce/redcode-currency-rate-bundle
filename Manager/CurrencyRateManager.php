@@ -79,23 +79,29 @@ class CurrencyRateManager implements ICurrencyRateManager
     /**
      * {@inheritdoc}
      */
-    public function getRate(ICurrency $currency, ICurrencyRateProvider $provider, DateTime $rateDate = null)
+    public function getRate(ICurrency $currency, ICurrencyRateProvider $provider = null, DateTime $rateDate = null)
     {
         $qb = $this->em->createQueryBuilder();
         $qb
             ->select('r')
             ->from($this->currencyRateClassName, 'r')
             ->leftJoin('r.currency', 'c')
-            ->where($qb->expr()->eq('c.code', ':currency'))
-            ->andWhere($qb->expr()->eq('r.providerName', ':provider'))
-            ->setParameters(['currency' => $currency->getCode(), 'provider' => $provider->getName()])
-            ->orderBy('r.date', 'DESC')
-        ;
+            ->where($qb->expr()->eq('c.code', ':currency'));
+
+        if (null !== $provider) {
+            $qb
+                ->andWhere($qb->expr()->eq('r.providerName', ':provider'))
+                ->setParameters(['currency' => $currency->getCode(), 'provider' => $provider->getName()]);
+        }
+
+        $qb->orderBy('r.date', 'DESC');
+
         if (isset($rateDate)) {
             $qb
                 ->andWhere($qb->expr()->eq('r.date', ':date'))
                 ->setParameter('date', $rateDate->format('Y-m-d 00:00:00'));
         }
+
         $result = $qb->getQuery()->getResult();
         $result = reset($result);
 
